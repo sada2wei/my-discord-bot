@@ -22,7 +22,7 @@ async def on_ready():
 @bot.event
 async def on_presence_update(before: discord.Member, after: discord.Member):
     if after.bot:
-        return  # Botのステータスは無視
+        return  # Botは無視
 
     user_id = after.id
     new_status = str(after.status)
@@ -33,11 +33,19 @@ async def on_presence_update(before: discord.Member, after: discord.Member):
 
     last_status[user_id] = new_status
 
-    # online になったときのみ自分のDMに通知
+    # 状態に応じて通知
+    status_message = None
     if new_status == "online":
+        status_message = "オンラインになりました"
+    elif new_status == "idle":
+        status_message = "退席中になりました"
+    elif new_status == "offline":
+        status_message = "オフラインになりました"
+
+    if status_message:
         try:
             notify_user = await bot.fetch_user(NOTIFY_USER_ID)
-            await notify_user.send(f"🔔 {after.name} がオンラインになりました！")
+            await notify_user.send(f"🔔 {after.name} が {status_message}！")
         except discord.Forbidden:
             print(f"DM が送れませんでした: {NOTIFY_USER_ID}")
         except Exception as e:
